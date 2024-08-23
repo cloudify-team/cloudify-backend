@@ -1,0 +1,22 @@
+{
+  "name": "cloud-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./src/app.js",
+    "dev": "cross-env NODE_ENV=development nodemon ./src/app.js"
+  },
+  "author": "Hafis Roshan",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "mongoose": "^6.4.1",
+    "nodemon": "^2.0.18"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}
