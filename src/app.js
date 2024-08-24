@@ -3,10 +3,12 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
+const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3001;
 const routes = require("./routes");
+
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 mongoose
   .connect("mongodb+srv://api:Loiwsa9Ak0e6Eyb8@hafis.xwea2.mongodb.net/", {
