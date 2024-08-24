@@ -38,11 +38,17 @@ router.post("/edit", async (req, res) => {
   const body = req.body;
   try {
     if (body) {
-      const folders = await Folders.create({
-        name: body.name,
-        access_control: body.access_control,
-        parent_folder: body.parent_folder,
-      });
+      const folders = await Folders.findOneAndUpdate(
+        { _id: body._id }, // Find the document with this _id
+        {
+          $set: {
+            name: body.name,
+            access_control: body.access_control,
+            parent_folder: body.parent_folder,
+          },
+        },
+        { new: true } // Return the updated document
+      );
       res.send(folders);
     } else {
       res.status(400).send({ message: "No data provided" });
