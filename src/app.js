@@ -31,9 +31,7 @@ app.use(
 app.use("/api/v1", routes);
 
 app.get("*", (req, res) => {
-  res.status(404).send({
-    message: "Not Found",
-  });
+  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
 app.listen(PORT, () => console.log(`Running on http://localhost:${PORT}`));
