@@ -56,7 +56,7 @@ router.post("/edit", async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .send({ message: "Error creating folder", error: error.message });
+      .send({ message: "Error editing folder", error: error.message });
   }
 });
 
@@ -64,7 +64,7 @@ router.post("/delete", async (req, res) => {
   const body = req.body;
   try {
     if (body) {
-      const folders = await Folders.createfindByIdAndDelete({
+      const folders = await Folders.findByIdAndDelete({
         _id: body._id,
       });
       // anathe contents del akkanam
@@ -75,7 +75,7 @@ router.post("/delete", async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .send({ message: "Error creating folder", error: error.message });
+      .send({ message: "Error deleting folder", error: error.message });
   }
 });
 
