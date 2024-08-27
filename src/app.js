@@ -11,10 +11,7 @@ const routes = require("./routes");
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 mongoose
-  .connect("mongodb+srv://api:Loiwsa9Ak0e6Eyb8@hafis.xwea2.mongodb.net/cloud", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_CONNECTION_URL)
   .catch((err) => {
     console.log(err);
   });
