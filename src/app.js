@@ -10,11 +10,9 @@ const routes = require("./routes");
 
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-mongoose
-  .connect(process.env.MONGO_CONNECTION_URL)
-  .catch((err) => {
-    console.log(err);
-  });
+mongoose.connect(process.env.MONGO_CONNECTION_URL).catch((err) => {
+  console.log(err);
+});
 
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
@@ -22,7 +20,7 @@ app.use(
   cors({
     origin: ["http://localhost:3000", /^https:\/\/.*\.cloud-5tx\.pages\.dev$/],
     credentials: true,
-  })
+  }),
 );
 
 app.use("/api/v1", routes);
