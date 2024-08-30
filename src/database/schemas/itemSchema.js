@@ -45,7 +45,7 @@ const itemSchema = new mongoose.Schema(
     },
     path: {
       type: String,
-      required: true,
+      required: false,
     },
   },
   {
