@@ -27,7 +27,7 @@ const uploadFile = async (file, fileName, ownerId, parentFolderId) => {
     const fileMetadata = {
       type: "file",
       name: fileName,
-      format: mime.extension(contentType),
+      format: contentType,
       size: file.length,
       owner_id: ownerId,
       parent_folder: parentFolderId,
