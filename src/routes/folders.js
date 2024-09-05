@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Item = require("../database/schemas/itemSchema.js");
+const verifyToken = require("../middleware/verifyToken.js");
 
 router.get("/fetch", async (req, res) => {
   try {
@@ -11,7 +12,7 @@ router.get("/fetch", async (req, res) => {
   }
 });
 
-router.post("/create", async (req, res) => {
+router.post("/create", verifyToken, async (req, res) => {
   const body = req.body;
   try {
     if (body) {
@@ -21,7 +22,7 @@ router.post("/create", async (req, res) => {
         size: "0",
         total_files: "0",
         access_control: [],
-        owner_id: body.owner_id,
+        owner_id: req.userId,
         parent_folder: body.parent_folder,
         path: body.path,
       });
@@ -36,7 +37,7 @@ router.post("/create", async (req, res) => {
   }
 });
 
-router.post("/edit", async (req, res) => {
+router.post("/edit", verifyToken, async (req, res) => {
   const body = req.body;
   try {
     if (body && body._id) {
@@ -67,7 +68,7 @@ router.post("/edit", async (req, res) => {
   }
 });
 
-router.post("/delete", async (req, res) => {
+router.post("/delete", verifyToken, async (req, res) => {
   const body = req.body;
   try {
     if (body && body._id) {
