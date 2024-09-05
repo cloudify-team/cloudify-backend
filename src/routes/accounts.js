@@ -7,7 +7,7 @@ const User = require("../database/schemas/userSchema.js");
 
 router.post("/register", async (req, res) => {
   try {
-    const { username, email, password, fullName } = await req.body;
+    const { username, email, password, fullName } = req.body;
     if (!username || !email || !password || !fullName) {
       return res.status(400).json({ message: "All fields are required." });
     }
