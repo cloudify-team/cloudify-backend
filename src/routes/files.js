@@ -2,6 +2,7 @@ const express = require("express");
 const { uploadFile } = require("../utils/upload");
 const { S3Client, ListObjectsV2Command } = require("@aws-sdk/client-s3");
 const multer = require("multer");
+const verifyToken = require("../middleware/verifyToken");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -34,7 +35,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-router.get("/fetch", async (req, res) => {
+router.get("/fetch", verifyToken, async (req, res) => {
   const listParams = {
     Bucket: "hafisroshan",
   };
