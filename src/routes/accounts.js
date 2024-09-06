@@ -55,7 +55,7 @@ router.post("/register", async (req, res) => {
       },
     });
 
-    const verificationLink = `${req.protocol}://${req.get("host")}/api/v1/accounts/verify-email?token=${verificationToken}`;
+    const verificationLink = `${req.protocol}://${req.get("host")}/verify-email?token=${verificationToken}`;
 
     const mailOptions = {
       from: process.env.EMAIL_ADDRESS,
