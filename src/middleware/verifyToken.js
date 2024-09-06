@@ -13,7 +13,9 @@ const verifyToken = (req, res, next) => {
 
   jwt.verify(formattedToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: "Unauthorized! Invalid token." });
+      return res
+        .status(401)
+        .json({ valid: false, message: "Unauthorized! Invalid token." });
     }
 
     req.userId = decoded.userId;
