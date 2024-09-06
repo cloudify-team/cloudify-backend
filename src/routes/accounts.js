@@ -2,9 +2,16 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
 const User = require("../database/schemas/userSchema.js");
 const verifyToken = require("../middleware/verifyToken.js");
+const sendMail = require("../utils/sendMail.js");
+const ejs = require("ejs");
+const fs = require("fs");
+const path = require("path");
+const verifyEmailTemplatePath = path.join(
+  __dirname,
+  "../emailTemplates/verifyEmail.html",
+);
 
 router.post("/register", async (req, res) => {
   try {
@@ -57,30 +64,18 @@ router.post("/register", async (req, res) => {
 
     await newUser.save();
 
-    // Sending verification email
-    let transporter = nodemailer.createTransport({
-      host: "smtp-mail.outlook.com",
-      auth: {
-        user: process.env.EMAIL_ADDRESS,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
     const verificationLink = `${req.protocol}://${req.get("host")}/verify-email?token=${verificationToken}`;
 
-    const mailOptions = {
-      from: process.env.EMAIL_ADDRESS,
-      to: email,
-      subject: "Verify Your Email",
-      html: `<p>Please verify your email by clicking on the following link:</p>
-                 <a href="${verificationLink}">Verify Email</a>`,
-    };
+    const emailTemplate = fs.readFileSync(verifyEmailTemplatePath, "utf-8");
+    const renderedHtml = ejs.render(emailTemplate, { verificationLink });
 
-    await transporter.sendMail(mailOptions);
+    const result = await sendMail(email, "Verify your mail", renderedHtml);
 
-    return res
-      .status(200)
-      .json({ message: "Verification email sent. Please check your inbox." });
+    if (result.success) {
+      res.status(200).json({ message: "Verification email sent successfully" });
+    } else {
+      res.status(500).json({ message: "Failed to send verification email" });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
@@ -172,29 +167,18 @@ router.post("/resend-email", async (req, res) => {
       return res.status(400).json({ message: "Account already verified" });
     }
 
-    let transporter = nodemailer.createTransport({
-      host: "smtp-mail.outlook.com",
-      auth: {
-        user: process.env.EMAIL_ADDRESS,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
     const verificationLink = `${req.protocol}://${req.get("host")}/verify-email?token=${user.verificationToken}`;
 
-    const mailOptions = {
-      from: process.env.EMAIL_ADDRESS,
-      to: email,
-      subject: "Verify Your Email",
-      html: `<p>Please verify your email by clicking on the following link:</p>
-                 <a href="${verificationLink}">Verify Email</a>`,
-    };
+    const emailTemplate = fs.readFileSync(verifyEmailTemplatePath, "utf-8");
+    const renderedHtml = ejs.render(emailTemplate, { verificationLink });
 
-    await transporter.sendMail(mailOptions);
+    const result = await sendMail(email, "Verify your mail", renderedHtml);
 
-    return res.status(200).json({
-      message: "Verification email sent again. Please check your inbox.",
-    });
+    if (result.success) {
+      res.status(200).json({ message: "Verification email sent successfully" });
+    } else {
+      res.status(500).json({ message: "Failed to send verification email" });
+    }
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
