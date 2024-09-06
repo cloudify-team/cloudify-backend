@@ -121,7 +121,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/verify-email", async (req, res) => {
+router.post("/verify-email", async (req, res) => {
   try {
     const { token } = req.query;
 
@@ -134,7 +134,14 @@ router.get("/verify-email", async (req, res) => {
     user.verificationToken = undefined;
     await user.save();
 
-    return res.status(200).json({ message: "Email verified successfully." }); // TODO: Redirect to login page.
+    const login_token = jwt.sign(
+      { userId: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+    );
+    return res
+      .status(200)
+      .json({ message: "Email verified successfully.", token: login_token });
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
