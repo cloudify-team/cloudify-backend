@@ -159,6 +159,47 @@ router.post("/verify-email", async (req, res) => {
   }
 });
 
+router.post("/resend-email", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(400).json({ message: "Email not registered" });
+    }
+    if (!user.verificationToken) {
+      return res.status(400).json({ message: "Account already verified" });
+    }
+
+    let transporter = nodemailer.createTransport({
+      host: "smtp-mail.outlook.com",
+      auth: {
+        user: process.env.EMAIL_ADDRESS,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    const verificationLink = `${req.protocol}://${req.get("host")}/verify-email?token=${user.verificationToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_ADDRESS,
+      to: email,
+      subject: "Verify Your Email",
+      html: `<p>Please verify your email by clicking on the following link:</p>
+                 <a href="${verificationLink}">Verify Email</a>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      message: "Verification email sent again. Please check your inbox.",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 router.post("/status", verifyToken, async (req, res) => {
   try {
     const userId = req.userId;
