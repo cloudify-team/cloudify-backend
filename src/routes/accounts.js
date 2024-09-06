@@ -217,7 +217,9 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(400).json({ message: "Email not registered" });
     }
 
-    const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "15m" });
+    const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
 
     const resetEmailLink = `${req.protocol}://${req.get("host")}/reset-password?token=${resetToken}`;
 
@@ -246,20 +248,25 @@ router.post("/reset-password/verify", async (req, res) => {
       return res.status(403).json({ message: "No token provided." });
     }
 
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       jwt.verify(resetToken, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-          if (err.name === 'TokenExpiredError') {
-            return res.status(401).json({valid: false, message: 'Token has expired' });
+          if (err.name === "TokenExpiredError") {
+            return res
+              .status(401)
+              .json({ valid: false, message: "Token has expired" });
           }
-          return res.status(401).json({valid: false, message: 'Invalid token', error: err.message });
+          return res.status(401).json({
+            valid: false,
+            message: "Invalid token",
+            error: err.message,
+          });
         }
         resolve(decoded);
       });
     });
 
-    return res.status(200).json({ valid: true, message: 'Valid Token'});
-
+    return res.status(200).json({ valid: true, message: "Valid Token" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -267,19 +274,25 @@ router.post("/reset-password/verify", async (req, res) => {
 
 router.post("/reset-password", async (req, res) => {
   try {
-    const { resetToken, newPassword} = req.body;
+    const { resetToken, newPassword } = req.body;
 
     if (!resetToken || !newPassword) {
       return res.status(403).json({ message: "All fields are required." });
     }
 
-    const decoded = await new Promise((resolve, reject) => {
+    const decoded = await new Promise((resolve) => {
       jwt.verify(resetToken, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-          if (err.name === 'TokenExpiredError') {
-            return res.status(401).json({valid: false, message: 'Token has expired' });
+          if (err.name === "TokenExpiredError") {
+            return res
+              .status(401)
+              .json({ valid: false, message: "Token has expired" });
           }
-          return res.status(401).json({valid: false, message: 'Invalid token', error: err.message });
+          return res.status(401).json({
+            valid: false,
+            message: "Invalid token",
+            error: err.message,
+          });
         }
         resolve(decoded);
       });
@@ -296,22 +309,62 @@ router.post("/reset-password", async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await User.findOneAndUpdate(
       {
-      email: decoded.email
+        email: decoded.email,
       },
       {
         $set: {
-          password: hashedPassword
-        }
-      }
-    )
+          password: hashedPassword,
+        },
+      },
+    );
 
-    return res.status(200).json({ message: "Password changed succesfully."})
+    return res.status(200).json({ message: "Password changed succesfully." });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
+router.post("/change-password", verifyToken, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
 
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
 
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(403).json({ message: "No user found" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect old password" });
+    }
+
+    if (oldPassword === newPassword) {
+      return res
+        .status(400)
+        .json({ message: "New password cannot be same as the old password" });
+    }
+
+    const passwordRegex = /(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        message:
+          "Invalid password. Password must be at least 8 characters long, include at least one uppercase letter and one special character.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password changed succesfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 
 module.exports = router;
