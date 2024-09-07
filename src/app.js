@@ -7,6 +7,9 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3001;
 const routes = require("./routes");
+const logger = require("morgan");
+
+app.use(logger("dev"));
 
 app.use(express.static(path.join(__dirname, "..", "public")));
 
