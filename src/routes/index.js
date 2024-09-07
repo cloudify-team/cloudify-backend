@@ -1,16 +1,28 @@
 const router = require("express").Router();
-const folders = require("./folders");
-const files = require("./files");
-const accounts = require("./accounts");
+const fs = require("fs");
+const path = require("path");
 
-router.use("/folders", folders);
-router.use("/files", files);
-router.use("/accounts", accounts);
+const setupRoutes = (router, basePath) => {
+  fs.readdirSync(basePath).forEach((folder) => {
+    const folderPath = path.join(basePath, folder);
 
-router.get("*", (req, res) => {
-  res.status(404).send({
-    message: "Not Found",
+    if (fs.statSync(folderPath).isDirectory()) {
+      const endpoint = `/${folder}`;
+
+      fs.readdirSync(folderPath).forEach((file) => {
+        const filePath = path.join(folderPath, file);
+
+        if (file.endsWith(".js")) {
+          const route = require(filePath);
+          router.use(endpoint, route);
+        }
+      });
+
+      console.log(`Mounted routes for endpoint: ${endpoint}`);
+    }
   });
-});
+};
+
+setupRoutes(router, path.join(__dirname, "."));
 
 module.exports = router;
