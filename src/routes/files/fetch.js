@@ -1,10 +1,6 @@
 const express = require("express");
-const { uploadFile } = require("../utils/upload");
 const { S3Client, ListObjectsV2Command } = require("@aws-sdk/client-s3");
-const multer = require("multer");
-const verifyToken = require("../middleware/verifyToken");
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const verifyToken = require("../../middleware/verifyToken");
 
 const s3Client = new S3Client({
   region: "us-east-005",
@@ -16,24 +12,6 @@ const s3Client = new S3Client({
 });
 
 const router = express.Router();
-
-router.post("/upload", upload.single("file"), async (req, res) => {
-  const { parent_folder, owner_id, name } = req.body;
-  const file = req.file;
-
-  if (!file || !name || !parent_folder) {
-    return res
-      .status(400)
-      .send({ message: "Missing file, name, or parent_folder" });
-  }
-
-  try {
-    const result = await uploadFile(file, name, owner_id, parent_folder);
-    res.send({ message: "File uploaded successfully", result });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
-});
 
 router.get("/fetch", verifyToken, async (req, res) => {
   const listParams = {
