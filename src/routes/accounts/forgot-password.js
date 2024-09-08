@@ -13,17 +13,27 @@ const resetPasswordTemplatePath = path.join(
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
+    const errors = [];
 
-    const user = await User.findOne({ email: email });
+    if (!email) {
+      errors.push({ field: "email", error: "Email is required." });
+    }
 
-    if (!user) {
-      return res.status(400).json({ message: "Email not registered" });
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, errors });
+    }
+
+    const user = await User.countDocuments({ email });
+    if (user == 0) {
+      return res.status(400).json({
+        success: false,
+        errors: [{ field: "email", error: "Email not registered." }],
+      });
     }
 
     const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, {
       expiresIn: "15m",
     });
-
     const resetEmailLink = `${req.protocol}://${req.get("host")}/reset-password?token=${resetToken}`;
 
     const emailTemplate = fs.readFileSync(resetPasswordTemplatePath, "utf-8");
@@ -32,14 +42,22 @@ router.post("/forgot-password", async (req, res) => {
     const result = await sendMail(email, "Forgot Password", renderedHtml);
 
     if (result.success) {
-      res
-        .status(200)
-        .json({ message: "Reset Password email sent successfully" });
+      res.status(200).json({
+        success: true,
+        message: "Reset Password email sent successfully.",
+      });
     } else {
-      res.status(500).json({ message: "Failed to send verification email" });
+      res.status(500).json({
+        success: false,
+        message: "Failed to send reset password email.",
+      });
     }
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Server error.",
+      error: error.message,
+    });
   }
 });
 
