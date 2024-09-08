@@ -14,40 +14,67 @@ const verifyEmailTemplatePath = path.join(
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password, fullName } = req.body;
-    if (!username || !email || !password || !fullName) {
-      return res.status(400).json({ message: "All fields are required." });
+    const errors = [];
+
+    if (!username) {
+      errors.push({ field: "username", error: "Username is required." });
+    }
+    if (!email) {
+      errors.push({ field: "email", error: "Email is required." });
+    }
+    if (!password) {
+      errors.push({ field: "password", error: "Password is required." });
+    }
+    if (!fullName) {
+      errors.push({ field: "fullName", error: "Full name is required." });
     }
 
-    //Username validation using regex
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, errors });
+    }
+
+    // Username validation using regex
     const usernameRegex = /^[a-zA-Z0-9_-]+$/;
     if (!usernameRegex.test(username)) {
-      return res.status(400).json({
-        message:
+      errors.push({
+        field: "username",
+        error:
           "Invalid username. Only letters, numbers, underscores, and hyphens are allowed.",
       });
     }
 
-    // password validation using regex
+    // Password validation using regex
     const passwordRegex = /(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}/;
     if (!passwordRegex.test(password)) {
-      return res.status(400).json({
-        message:
+      errors.push({
+        field: "password",
+        error:
           "Invalid password. Password must be at least 8 characters long, include at least one uppercase letter and one special character.",
       });
     }
 
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, errors });
+    }
+
     const lowercaseUsername = username.toLowerCase();
-    const existingUser = await User.findOne({
-      $or: [{ email }, { lowercaseUsername }],
+    const emailCount = await User.countDocuments({ email });
+    const usernameCount = await User.countDocuments({
+      username: lowercaseUsername,
     });
-    if (existingUser) {
-      if (existingUser.email === email) {
-        return res
-          .status(409)
-          .json({ message: "User with this email already exists." });
-      } else if (existingUser.username === lowercaseUsername) {
-        return res.status(409).json({ message: "Username is already taken." });
-      }
+
+    if (emailCount > 0) {
+      errors.push({
+        field: "email",
+        error: "User with this email already exists.",
+      });
+    }
+    if (usernameCount > 0) {
+      errors.push({ field: "username", error: "Username is already taken." });
+    }
+
+    if (errors.length > 0) {
+      return res.status(409).json({ success: false, errors });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -62,7 +89,9 @@ router.post("/register", async (req, res) => {
 
     await newUser.save();
 
-    const verificationLink = `${req.protocol}://${req.get("host")}/verify-email?token=${verificationToken}`;
+    const verificationLink = `${req.protocol}://${req.get(
+      "host",
+    )}/verify-email?token=${verificationToken}`;
 
     const emailTemplate = fs.readFileSync(verifyEmailTemplatePath, "utf-8");
     const renderedHtml = ejs.render(emailTemplate, { verificationLink });
@@ -70,13 +99,18 @@ router.post("/register", async (req, res) => {
     const result = await sendMail(email, "Verify your mail", renderedHtml);
 
     if (result.success) {
-      res.status(200).json({ message: "Verification email sent successfully" });
+      return res.status(200).json({
+        success: true,
+        message: "Verification email sent successfully",
+      });
     } else {
-      res.status(500).json({ message: "Failed to send verification email" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to send verification email" });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send(error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
