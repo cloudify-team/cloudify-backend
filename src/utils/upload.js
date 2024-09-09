@@ -1,6 +1,7 @@
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const mime = require("mime-types");
 const Item = require("../database/schemas/itemSchema");
+const findPath = require("./findPath");
 
 const s3Client = new S3Client({
   region: "us-east-005",
@@ -15,9 +16,12 @@ const uploadFile = async (file, fileName, ownerId, parentFolderId) => {
   try {
     const contentType = mime.lookup(fileName) || "application/octet-stream";
 
+    const folderPath = await findPath(parentFolderId, ownerId);
+    const filePath = `${folderPath}/${fileName}`;
+
     const uploadParams = {
       Bucket: "hafisroshan",
-      Key: fileName,
+      Key: filePath,
       Body: file.buffer,
       ContentType: contentType,
     };
@@ -28,10 +32,10 @@ const uploadFile = async (file, fileName, ownerId, parentFolderId) => {
       type: "file",
       name: fileName,
       format: contentType,
-      size: file.length,
+      size: file.size,
       owner_id: ownerId,
       parent_folder: parentFolderId,
-      path: fileName,
+      path: filePath,
     };
 
     const savedFile = await Item.create(fileMetadata);
