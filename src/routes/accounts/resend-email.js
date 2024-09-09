@@ -12,14 +12,29 @@ const verifyEmailTemplatePath = path.join(
 router.post("/resend-email", async (req, res) => {
   try {
     const { email } = req.body;
+    const errors = [];
 
-    const user = await User.findOne({ email: email });
-
-    if (!user) {
-      return res.status(400).json({ message: "Email not registered" });
+    if (!email) {
+      errors.push({ field: "email", error: "Email is required." });
     }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, errors });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        errors: [{ field: "email", error: "Email not registered." }],
+      });
+    }
+
     if (!user.verificationToken) {
-      return res.status(400).json({ message: "Account already verified" });
+      return res.status(400).json({
+        success: false,
+        errors: [{ field: "email", error: "Account already verified." }],
+      });
     }
 
     const verificationLink = `${req.protocol}://${req.get("host")}/verify-email?token=${user.verificationToken}`;
@@ -30,12 +45,22 @@ router.post("/resend-email", async (req, res) => {
     const result = await sendMail(email, "Verify your mail", renderedHtml);
 
     if (result.success) {
-      res.status(200).json({ message: "Verification email sent successfully" });
+      res.status(200).json({
+        success: true,
+        message: "Verification email sent successfully.",
+      });
     } else {
-      res.status(500).json({ message: "Failed to send verification email" });
+      res.status(500).json({
+        success: false,
+        message: "Failed to send verification email.",
+      });
     }
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Server error.",
+      error: error.message,
+    });
   }
 });
 

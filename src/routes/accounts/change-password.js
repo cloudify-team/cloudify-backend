@@ -6,33 +6,58 @@ const verifyToken = require("../../middleware/verifyToken.js");
 router.post("/change-password", verifyToken, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
+    const errors = [];
 
-    if (!oldPassword || !newPassword) {
-      return res.status(400).json({ message: "All fields are required." });
+    if (!oldPassword) {
+      errors.push({ field: "oldPassword", error: "Old password is required." });
+    }
+    if (!newPassword) {
+      errors.push({ field: "newPassword", error: "New password is required." });
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, errors });
     }
 
     const user = await User.findById(req.userId);
-
     if (!user) {
-      return res.status(403).json({ message: "No user found" });
+      return res.status(403).json({
+        success: false,
+        errors: [{ field: "user", error: "No user found." }],
+      });
     }
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Incorrect old password" });
+      return res.status(400).json({
+        success: false,
+        errors: [{ field: "oldPassword", error: "Incorrect old password." }],
+      });
     }
 
     if (oldPassword === newPassword) {
-      return res
-        .status(400)
-        .json({ message: "New password cannot be same as the old password" });
+      return res.status(400).json({
+        success: false,
+        errors: [
+          {
+            field: "newPassword",
+            error: "New password cannot be the same as the old password.",
+          },
+        ],
+      });
     }
 
     const passwordRegex = /(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
-        message:
-          "Invalid password. Password must be at least 8 characters long, include at least one uppercase letter and one special character.",
+        success: false,
+        errors: [
+          {
+            field: "newPassword",
+            error:
+              "Invalid password. Must be at least 8 characters long, include at least one uppercase letter and one special character.",
+          },
+        ],
       });
     }
 
@@ -40,9 +65,13 @@ router.post("/change-password", verifyToken, async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    return res.status(200).json({ message: "Password changed succesfully." });
+    return res
+      .status(200)
+      .json({ success: true, message: "Password changed successfully." });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
   }
 });
 

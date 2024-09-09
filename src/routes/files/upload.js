@@ -3,22 +3,27 @@ const { uploadFile } = require("../../utils/upload");
 const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+const verifyToken = require("../../middleware/verifyToken");
 
 const router = express.Router();
 
-router.post("/upload", upload.single("file"), async (req, res) => {
-  const { parent_folder, owner_id, name } = req.body;
+router.post("/upload", verifyToken, upload.single("file"), async (req, res) => {
+  const { parent_folder, name } = req.body;
   const file = req.file;
+  const owner_id = req.userId;
 
-  if (!file || !name || !parent_folder) {
-    return res
-      .status(400)
-      .send({ message: "Missing file, name, or parent_folder" });
+  if (!file || !name) {
+    return res.status(400).send({ message: "Missing file or name" });
   }
 
   try {
-    const result = await uploadFile(file, name, owner_id, parent_folder);
-    res.send({ message: "File uploaded successfully", result });
+    const result = await uploadFile(
+      file,
+      name,
+      owner_id,
+      parent_folder || null,
+    );
+    res.status(201).send({ message: "File uploaded successfully", result });
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
