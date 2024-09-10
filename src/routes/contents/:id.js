@@ -19,7 +19,6 @@ router.get("/:id", verifyToken, async (req, res) => {
         return res.status(400).send({ message: "Invalid folder ID format" });
       }
 
-
       const folder = await Item.countDocuments({
         _id: new mongoose.Types.ObjectId(id),
         owner_id: req.userId,

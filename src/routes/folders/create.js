@@ -3,16 +3,6 @@ const Item = require("../../database/schemas/itemSchema.js");
 const verifyToken = require("../../middleware/verifyToken.js");
 const findPath = require("../../utils/findPath.js");
 
-router.get("/fetch", async (req, res) => {
-  try {
-    const items = await Item.find();
-    res.send(items);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
-  }
-});
-
 router.post("/create", verifyToken, async (req, res) => {
   const { name, parent_folder } = req.body;
 
