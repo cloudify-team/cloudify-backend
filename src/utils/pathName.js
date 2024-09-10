@@ -6,7 +6,6 @@ async function pathName(path) {
     let paths = path.split("/");
     let pathNames = [];
     paths.shift();
-    console.log(paths);
     for (const folderId of paths) {
       let folder = await Item.findById(new mongoose.Types.ObjectId(folderId));
 

@@ -1,4 +1,5 @@
 const Item = require("../database/schemas/itemSchema.js");
+const mongoose = require("mongoose");
 
 async function findPath(folderId, userId) {
   try {
@@ -7,7 +8,7 @@ async function findPath(folderId, userId) {
       return userId;
     }
 
-    let currentFolder = await Item.findById(folderId);
+    let currentFolder = await Item.findById(new mongoose.Types.ObjectId(folderId));
 
     if (!currentFolder) {
       throw new Error("Folder not found");

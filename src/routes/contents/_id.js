@@ -11,7 +11,7 @@ router.get("/:id", verifyToken, async (req, res) => {
 
     if (id === "home") {
       content = await Item.find({
-        parent_folder: "null",
+        parent_folder: null,
         owner_id: req.userId,
       });
     } else {
