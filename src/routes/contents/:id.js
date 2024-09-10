@@ -8,8 +8,11 @@ router.get("/:id", verifyToken, async (req, res) => {
   try {
     let content;
 
-    if ( id === "home"){
-      content = await Item.find({ parent_folder:"null",owner_id: req.userId });
+    if (id === "home") {
+      content = await Item.find({
+        parent_folder: "null",
+        owner_id: req.userId,
+      });
     } else {
       content = await Item.find({
         parent_folder: id,
