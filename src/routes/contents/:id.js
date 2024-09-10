@@ -14,6 +14,16 @@ router.get("/:id", verifyToken, async (req, res) => {
         owner_id: req.userId,
       });
     } else {
+      const folder = await Item.countDocuments({
+        _id: id,
+        owner_id: req.userId,
+        type: "folder",
+      });
+
+      if (folder.length === 0) {
+        return res.status(404).send({ message: "Folder not found" });
+      }
+
       content = await Item.find({
         parent_folder: id,
         owner_id: req.userId,
@@ -21,7 +31,7 @@ router.get("/:id", verifyToken, async (req, res) => {
     }
 
     if (!content.length) {
-      return res.status(404).send({ message: "No content found" });
+      return res.status(400).send({ message: "No content found" });
     }
 
     res.send(content);
