@@ -8,7 +8,9 @@ async function findPath(folderId, userId) {
       return userId;
     }
 
-    let currentFolder = await Item.findById(new mongoose.Types.ObjectId(folderId));
+    let currentFolder = await Item.findById(
+      new mongoose.Types.ObjectId(folderId),
+    );
 
     if (!currentFolder) {
       throw new Error("Folder not found");

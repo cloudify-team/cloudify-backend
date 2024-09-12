@@ -16,10 +16,13 @@ router.post("/upload", verifyToken, upload.single("file"), async (req, res) => {
     return res.status(400).send({ message: "Missing file or name" });
   }
 
+  const fileNameRegex = /[<>:"/\\|?*]/g;
+  const sanitizedName = name.replace(fileNameRegex, "_");
+
   try {
     const result = await uploadFile(
       file,
-      name,
+      sanitizedName,
       owner_id,
       parent_folder || null,
     );

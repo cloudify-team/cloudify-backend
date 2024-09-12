@@ -13,6 +13,19 @@ router.post("/create", verifyToken, async (req, res) => {
     });
   }
 
+  const folderRegex = /[<>:"/\\|?*]/g;
+  if (folderRegex.test(name)) {
+    return res.status(400).send({
+      success: false,
+      errors: [
+        {
+          field: "name",
+          error: ':, *, ?, ", <, >, | - Characters not allowed',
+        },
+      ],
+    });
+  }
+
   try {
     const folder = await Item.create({
       type: "folder",
