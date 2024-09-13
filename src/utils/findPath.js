@@ -26,7 +26,6 @@ async function findPath(folderId, userId) {
     }
 
     path.unshift(userId);
-    console.log(userId);
     return path.join("/");
   } catch (error) {
     throw new Error(`Error finding path: ${error.message}`);

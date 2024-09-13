@@ -11,7 +11,6 @@ const s3Client = new S3Client({
 });
 
 const deleteFile = async (id, filePath) => {
-  console.log(filePath);
   try {
     const deleteParams = {
       Bucket: "hafisroshan",
