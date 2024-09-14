@@ -24,9 +24,11 @@ const deleteFolder = async (folderId, folderPath) => {
     const listedObjects = await s3Client.send(
       new ListObjectsCommand(listParams),
     );
+    console.log(listedObjects);
+    if (!listedObjects.Contents || !listedObjects.Contents.length) {
+      await Item.deleteMany({ path: { $regex: folderId } });
 
-    if (!listedObjects.Contents.length) {
-      throw new Error("Folder is empty or does not exist");
+      return { message: "Folder deleted from the database." };
     }
 
     const deleteParams = {
