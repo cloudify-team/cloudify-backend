@@ -1,6 +1,6 @@
 const {
   S3Client,
-  ListObjectsCommand,
+  ListObjectVersionsCommand,
   DeleteObjectsCommand,
 } = require("@aws-sdk/client-s3");
 const Item = require("../database/schemas/itemSchema");
@@ -22,19 +22,21 @@ const deleteFolder = async (folderId, folderPath) => {
     };
 
     const listedObjects = await s3Client.send(
-      new ListObjectsCommand(listParams),
+      new ListObjectVersionsCommand(listParams),
     );
-    console.log(listedObjects);
-    if (!listedObjects.Contents || !listedObjects.Contents.length) {
-      await Item.deleteMany({ path: { $regex: folderId } });
 
+    if (!listedObjects.Versions || listedObjects.Versions.length === 0) {
+      await Item.deleteMany({ path: { $regex: folderId } });
       return { message: "Folder deleted from the database." };
     }
 
     const deleteParams = {
       Bucket: "hafisroshan",
       Delete: {
-        Objects: listedObjects.Contents.map((item) => ({ Key: item.Key })),
+        Objects: listedObjects.Versions.map((item) => ({
+          Key: item.Key,
+          VersionId: item.VersionId,
+        })),
       },
     };
 
@@ -42,9 +44,7 @@ const deleteFolder = async (folderId, folderPath) => {
       new DeleteObjectsCommand(deleteParams),
     );
 
-    await Item.deleteMany({
-      path: { $regex: folderId },
-    });
+    await Item.deleteMany({ path: { $regex: folderId } });
 
     return deleteResult;
   } catch (error) {
