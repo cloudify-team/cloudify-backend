@@ -1,7 +1,6 @@
 const {
   S3Client,
-  ListObjectsCommand,
-  DeleteObjectsCommand,
+  PutBucketLifecycleConfigurationCommand,
 } = require("@aws-sdk/client-s3");
 const Item = require("../database/schemas/itemSchema");
 
@@ -16,37 +15,33 @@ const s3Client = new S3Client({
 
 const deleteFolder = async (folderId, folderPath) => {
   try {
-    const listParams = {
+    const params = {
       Bucket: "hafisroshan",
-      Prefix: folderPath,
-    };
-
-    const listedObjects = await s3Client.send(
-      new ListObjectsCommand(listParams),
-    );
-    console.log(listedObjects);
-    if (!listedObjects.Contents || !listedObjects.Contents.length) {
-      await Item.deleteMany({ path: { $regex: folderId } });
-
-      return { message: "Folder deleted from the database." };
-    }
-
-    const deleteParams = {
-      Bucket: "hafisroshan",
-      Delete: {
-        Objects: listedObjects.Contents.map((item) => ({ Key: item.Key })),
+      LifecycleConfiguration: {
+        Rules: [
+          {
+            ID: `DeleteAfterOneDay-${folderId}`,
+            Prefix: folderPath,
+            Status: "Enabled",
+            Expiration: {
+              Days: 1,
+            },
+          },
+        ],
       },
     };
 
-    const deleteResult = await s3Client.send(
-      new DeleteObjectsCommand(deleteParams),
-    );
+    const command = new PutBucketLifecycleConfigurationCommand(params);
+    await s3Client.send(command);
 
     await Item.deleteMany({
       path: { $regex: folderId },
     });
 
-    return deleteResult;
+    return {
+      message:
+        "Lifecycle policy set and folder marked for deletion in MongoDB.",
+    };
   } catch (error) {
     throw new Error(`Error deleting folder: ${error.message}`);
   }
