@@ -35,9 +35,15 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  profilePicture: {
-    type: String,
-    default: "",
+  avatar: {
+    status: {
+      type: Boolean,
+      default: false,
+    },
+    version: {
+      type: String,
+      default: "",
+    },
   },
   dateJoined: {
     type: Date,

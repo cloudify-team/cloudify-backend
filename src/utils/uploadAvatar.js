@@ -61,17 +61,23 @@ const uploadAvatar = async (file, fileName, userId) => {
     };
 
     await s3Client.send(new PutObjectCommand(uploadParams));
+    let version = new Date().getTime();
 
     await User.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(userId) },
       {
         $set: {
-          profilePicture: `https://cloud-cdn.beatsbot.in/${fileName}`,
+          "avatar.status": true,
+          "avatar.version": version,
         },
       },
     );
 
-    return { success: true, message: "Profile photo updated succesfully." };
+    return {
+      success: true,
+      message: "Profile photo updated succesfully.",
+      avatar: `${fileName}?v=${version}`,
+    };
   } catch (err) {
     console.error("Error uploading file:", err);
     throw new Error(`Error uploading file: ${err.message}`);
