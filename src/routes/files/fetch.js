@@ -13,7 +13,7 @@ const s3Client = new S3Client({
 
 const router = express.Router();
 
-router.get("/fetch", verifyToken, async (req, res) => {
+router.get("/fetch", async (req, res) => {
   const listParams = {
     Bucket: "hafisroshan",
   };
