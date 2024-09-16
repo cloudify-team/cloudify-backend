@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./src/app.js",
     "dev": "cross-env NODE_ENV=development nodemon ./src/app.js",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "fix-lint": "eslint . --fix"
   },
   "author": "Hafis Roshan",
