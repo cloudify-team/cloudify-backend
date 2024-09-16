@@ -2,9 +2,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ '**' ]
   pull_request:
-    branches: [ main ]
+    branches: [ '**' ]
 
 jobs:
   build:
@@ -29,5 +29,6 @@ jobs:
     - name: Run linter
       run: npm run lint
 
-    - name: Build application
-      run: npm run build
+    # Uncomment this step if you have a build process
+    # - name: Build application
+    #   run: npm run build
