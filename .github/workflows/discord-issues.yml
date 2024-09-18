@@ -1,0 +1,31 @@
+name: Issue to Discord
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  discordWebhook:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Send webhook to Discord on issue open/close
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }} # Store this in GitHub Secrets
+      run: |
+        ISSUE_TITLE="${{ github.event.issue.title }}"
+        ISSUE_URL="${{ github.event.issue.html_url }}"
+        ISSUE_STATUS="${{ github.event.action }}"
+        
+        # Prepare the payload
+        PAYLOAD='{
+          "content": "Issue '"$ISSUE_STATUS"' - **'"$ISSUE_TITLE"'**\nURL: '"$ISSUE_URL"'",
+          "username": "GitHub",
+          "avatar_url": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+          "thread_name": "'"$ISSUE_TITLE"'"
+        }'
+
+        # Send the webhook request
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -d "$PAYLOAD" \
+          "$DISCORD_WEBHOOK_URL"
