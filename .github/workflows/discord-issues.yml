@@ -14,16 +14,16 @@ jobs:
       run: |
         ISSUE_TITLE="${{ github.event.issue.title }}"
         ISSUE_URL="${{ github.event.issue.html_url }}"
+        ISSUE_BODY="${{ github.event.issue.body }}"
         ISSUE_STATUS="${{ github.event.action }}"
         
         # Prepare the payload
-        PAYLOAD='{
-          "content": "Issue '"$ISSUE_STATUS"' - **'"$ISSUE_TITLE"'**\nURL: '"$ISSUE_URL"'",
-          "username": "GitHub",
-          "avatar_url": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
-          "thread_name": "'"$ISSUE_TITLE"'"
-        }'
-
+        PAYLOAD=$(jq -n --arg content "<@776664723127140364> <@891581154765979668> Issue $ISSUE_STATUS - **$ISSUE_TITLE** URL: $ISSUE_URL $ISSUE_BODY" \
+                      --arg username "GitHub" \
+                      --arg avatar_url "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" \
+                      --arg thread_name "$ISSUE_TITLE" \
+                      '{content: $content, username: $username, avatar_url: $avatar_url, thread_name: $thread_name}')
+        
         # Send the webhook request
         curl -X POST \
           -H "Content-Type: application/json" \
