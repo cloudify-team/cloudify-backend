@@ -3,6 +3,7 @@ const mime = require("mime-types");
 const Item = require("../database/schemas/itemSchema");
 const findPath = require("./findPath");
 const s3Client = require("./s3Client");
+const { updateStorage } = require("./updateStorage");
 
 const uploadFile = async (file, fileName, ownerId, parentFolderId) => {
   try {
@@ -24,13 +25,14 @@ const uploadFile = async (file, fileName, ownerId, parentFolderId) => {
       type: "file",
       name: fileName,
       format: contentType,
-      size: file.size,
+      size: (file.size / (1024 * 1024)).toFixed(2),
       owner_id: ownerId,
       parent_folder: parentFolderId,
       path: filePath,
     };
 
     const savedFile = await Item.create(fileMetadata);
+    await updateStorage(ownerId, (file.size / (1024 * 1024)).toFixed(2));
 
     return { success: true, data, savedFile };
   } catch (err) {
