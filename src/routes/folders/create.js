@@ -2,6 +2,7 @@ const router = require("express").Router();
 const Item = require("../../database/schemas/itemSchema.js");
 const verifyToken = require("../../middleware/verifyToken.js");
 const findPath = require("../../utils/findPath.js");
+const { getUniqueFilename } = require("../../utils/uniqueItemName.js");
 
 router.post("/create", verifyToken, async (req, res) => {
   const { name, parent_folder } = req.body;
@@ -26,10 +27,15 @@ router.post("/create", verifyToken, async (req, res) => {
     });
   }
 
+  const uniqueFolderName = await getUniqueFilename(
+    parent_folder,
+    name,
+    "folder",
+  );
   try {
     const folder = await Item.create({
       type: "folder",
-      name,
+      name: uniqueFolderName,
       size: "0",
       total_files: "0",
       access_control: [],
