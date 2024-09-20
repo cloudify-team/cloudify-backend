@@ -14,16 +14,22 @@ jobs:
       run: |
         ISSUE_TITLE="${{ github.event.issue.title }}"
         ISSUE_URL="${{ github.event.issue.html_url }}"
-        ISSUE_BODY="${{ github.event.issue.body }}"
         ISSUE_STATUS="${{ github.event.action }}"
-        
-        # Prepare the payload
-        PAYLOAD=$(jq -n --arg content "<@776664723127140364> <@891581154765979668> Issue $ISSUE_STATUS - **$ISSUE_TITLE** URL: $ISSUE_URL $ISSUE_BODY" \
-                      --arg username "GitHub" \
-                      --arg avatar_url "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" \
-                      --arg thread_name "$ISSUE_TITLE" \
-                      '{content: $content, username: $username, avatar_url: $avatar_url, thread_name: $thread_name}')
-        
+        ISSUE_BODY="${{ github.event.issue.body }}"
+
+        # Prepare the payload with proper JSON formatting
+        PAYLOAD=$(jq -n \
+          --arg content "<@891581154765979668> <@776664723127140364>" \
+          --arg author "BACKEND | Issue $ISSUE_STATUS" \
+          --arg title "$ISSUE_TITLE" \
+          --arg url "$ISSUE_URL" \
+          --arg description "$ISSUE_BODY" \
+          --arg username "GitHub" \
+          --arg avatar_url "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" \
+          --arg thread_name "$ISSUE_TITLE" \
+          --argjson applied_tags '["1281598466971271241","1281600980940492800"]' \
+          '{content: $content, embeds: [{author: {name: $author}, title: $title, url: $url, description: $description}], username: $username, avatar_url: $avatar_url, thread_name: $thread_name, applied_tags: $applied_tags}')
+
         # Send the webhook request
         curl -X POST \
           -H "Content-Type: application/json" \
