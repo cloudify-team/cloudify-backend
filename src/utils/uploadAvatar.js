@@ -1,5 +1,4 @@
 const {
-  S3Client,
   ListObjectVersionsCommand,
   DeleteObjectsCommand,
   PutObjectCommand,
@@ -7,15 +6,7 @@ const {
 const mime = require("mime-types");
 const User = require("../database/schemas/userSchema");
 const mongoose = require("mongoose");
-
-const s3Client = new S3Client({
-  region: "us-east-005",
-  endpoint: "https://s3.us-east-005.backblazeb2.com",
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-  },
-});
+const s3Client = require("./s3Client");
 
 const deleteAllFileVersions = async (bucket, key) => {
   try {

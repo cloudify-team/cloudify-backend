@@ -1,18 +1,9 @@
 const {
-  S3Client,
   ListObjectVersionsCommand,
   DeleteObjectsCommand,
 } = require("@aws-sdk/client-s3");
 const Item = require("../database/schemas/itemSchema");
-
-const s3Client = new S3Client({
-  region: "us-east-005",
-  endpoint: "https://s3.us-east-005.backblazeb2.com",
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-  },
-});
+const s3Client = require("./s3Client");
 
 const deleteFolder = async (folderId, folderPath) => {
   try {
