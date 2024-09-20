@@ -24,8 +24,7 @@ router.get("/:id", verifyToken, async (req, res) => {
         owner_id: req.userId,
         type: "folder",
       });
-
-      if (folder.length === 0) {
+      if (folder === 0) {
         return res.status(404).send({ message: "Folder not found" });
       }
 
