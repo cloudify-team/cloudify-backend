@@ -4,6 +4,7 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const verifyToken = require("../../middleware/verifyToken");
+const { getUniqueFilename } = require("../../utils/uniqueItemName");
 
 const router = express.Router();
 
@@ -18,11 +19,15 @@ router.post("/upload", verifyToken, upload.single("file"), async (req, res) => {
 
   const fileNameRegex = /[<>:"/\\|?*]/g;
   const sanitizedName = name.replace(fileNameRegex, "_");
-
+  const uniqueFileName = await getUniqueFilename(
+    parent_folder,
+    sanitizedName,
+    "file",
+  );
   try {
     const result = await uploadFile(
       file,
-      sanitizedName,
+      uniqueFileName,
       owner_id,
       parent_folder || null,
     );
