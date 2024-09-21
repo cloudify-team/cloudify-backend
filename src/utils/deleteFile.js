@@ -3,6 +3,7 @@ const {
   DeleteObjectsCommand,
 } = require("@aws-sdk/client-s3");
 const Item = require("../database/schemas/itemSchema");
+const User = require("../database/schemas/userSchema");
 const s3Client = require("./s3Client");
 
 const deleteFile = async (id, filePath) => {
@@ -35,7 +36,18 @@ const deleteFile = async (id, filePath) => {
       new DeleteObjectsCommand(deleteParams),
     );
 
-    await Item.findOneAndDelete({ _id: id });
+    const item = await Item.findOne({ _id: id });
+    if (item) {
+      const itemSize = item.size;
+      const userId = item.owner_id;
+
+      await Item.findOneAndDelete({ _id: id });
+
+      await User.findOneAndUpdate(
+        { _id: userId },
+        { $inc: { usedStorage: -itemSize } },
+      );
+    }
 
     return deleteResult;
   } catch (error) {
