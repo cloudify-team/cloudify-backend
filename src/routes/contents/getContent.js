@@ -6,11 +6,22 @@ const mongoose = require("mongoose");
 
 router.get("/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
+  const { limit, offset } = req.query;
+  const limitNumber = parseInt(limit, 10) || 20;
+  const offsetNumber = parseInt(offset, 10) || 0;
+
   try {
-    let content;
+    let content, content_length;
 
     if (id === "home") {
       content = await Item.find({
+        parent_folder: null,
+        owner_id: req.userId,
+      })
+        .skip(offsetNumber)
+        .limit(limitNumber);
+
+      content_length = await Item.countDocuments({
         parent_folder: null,
         owner_id: req.userId,
       });
@@ -31,10 +42,25 @@ router.get("/:id", verifyToken, async (req, res) => {
       content = await Item.find({
         parent_folder: id,
         owner_id: req.userId,
+      })
+        .skip(offsetNumber)
+        .limit(limitNumber);
+      content_length = await Item.countDocuments({
+        parent_folder: id,
+        owner_id: req.userId,
       });
     }
 
-    res.send(content);
+    res.send({
+      content,
+      total: content_length,
+      next:
+        content_length > offsetNumber + limitNumber
+          ? content_length - (offsetNumber + limitNumber)
+          : null,
+      limit: limitNumber,
+      offset: offsetNumber,
+    });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
