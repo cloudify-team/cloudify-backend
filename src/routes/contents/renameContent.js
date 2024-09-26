@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const verifyToken = require("../../middleware/verifyToken");
 const { renameItem } = require("../../utils/renameItem");
 const Item = require("../../database/schemas/itemSchema");
+const { getUniqueFileName } = require("../../utils/uniqueItemName");
 
 const router = express.Router();
 
@@ -38,7 +39,15 @@ router.put("/rename", verifyToken, async (req, res) => {
       });
     }
 
-    await renameItem(item, newName);
+    const fileNameRegex = /[<>:"/\\|?*]/g;
+    const sanitizedName = newName.replace(fileNameRegex, "_");
+    const uniqueFileName = await getUniqueFileName(
+      item.parent_folder,
+      sanitizedName,
+      "file",
+    );
+
+    await renameItem(item, uniqueFileName);
     return res.status(200).send({
       success: true,
       message: `Item renamed succesfully.`,
