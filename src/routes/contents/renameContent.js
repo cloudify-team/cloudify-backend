@@ -41,7 +41,7 @@ router.put("/rename", verifyToken, async (req, res) => {
 
     const fileNameRegex = /[<>:"/\\|?*]/g;
     const sanitizedName = newName.replace(fileNameRegex, "_");
-    const uniqueFileName = await getUniqueFileName(
+    const uniqueFileName = await getUniqueFilename(
       item.parent_folder,
       sanitizedName,
       "file",
