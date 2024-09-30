@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const verifyToken = require("../../middleware/verifyToken");
 const { renameItem } = require("../../utils/renameItem");
 const Item = require("../../database/schemas/itemSchema");
-const { getUniqueFileName } = require("../../utils/uniqueItemName");
+const { getUniqueFilename } = require("../../utils/uniqueItemName");
 
 const router = express.Router();
 
